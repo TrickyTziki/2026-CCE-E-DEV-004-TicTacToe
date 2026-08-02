@@ -29,17 +29,43 @@ export type MoveResult = Readonly<{
   game: Game;
 }>;
 
-function notImplemented(operation: string): never {
-  throw new Error(`${operation} has not been implemented.`);
+function createEmptyBoard(): Board {
+  return [null, null, null, null, null, null, null, null, null];
+}
+
+function placeMark(board: Board, position: number, mark: Mark): Board {
+  return [
+    position === 0 ? mark : board[0],
+    position === 1 ? mark : board[1],
+    position === 2 ? mark : board[2],
+    position === 3 ? mark : board[3],
+    position === 4 ? mark : board[4],
+    position === 5 ? mark : board[5],
+    position === 6 ? mark : board[6],
+    position === 7 ? mark : board[7],
+    position === 8 ? mark : board[8],
+  ];
+}
+
+function nextPlayer(player: Mark): Mark {
+  return player === 'X' ? 'O' : 'X';
 }
 
 export function createGame(): Game {
-  return notImplemented('Creating a game');
+  return {
+    board: createEmptyBoard(),
+    status: { kind: 'playing', nextPlayer: 'X' },
+  };
 }
 
 export function playMove(game: Game, position: number): MoveResult {
-  void game;
-  void position;
+  const player = game.status.nextPlayer;
 
-  return notImplemented('Playing a move');
+  return {
+    accepted: true,
+    game: {
+      board: placeMark(game.board, position, player),
+      status: { kind: 'playing', nextPlayer: nextPlayer(player) },
+    },
+  };
 }
