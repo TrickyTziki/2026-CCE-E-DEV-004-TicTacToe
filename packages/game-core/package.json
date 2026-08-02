@@ -12,7 +12,7 @@
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
     "lint": "eslint src --max-warnings=0",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   }
