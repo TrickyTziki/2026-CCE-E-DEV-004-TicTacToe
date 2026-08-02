@@ -1,0 +1,19 @@
+{
+  "name": "@tictactoe/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "lint": "eslint src vite.config.ts --max-warnings=0",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tictactoe/game-core": "0.0.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  }
+}
