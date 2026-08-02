@@ -24,10 +24,20 @@ export type Game = Readonly<{
   status: GameStatus;
 }>;
 
-export type MoveResult = Readonly<{
+export type MoveRejectionReason = 'invalid-position' | 'occupied';
+
+export type AcceptedMove = Readonly<{
   accepted: true;
   game: Game;
 }>;
+
+export type RejectedMove = Readonly<{
+  accepted: false;
+  reason: MoveRejectionReason;
+  game: Game;
+}>;
+
+export type MoveResult = AcceptedMove | RejectedMove;
 
 function createEmptyBoard(): Board {
   return [null, null, null, null, null, null, null, null, null];
