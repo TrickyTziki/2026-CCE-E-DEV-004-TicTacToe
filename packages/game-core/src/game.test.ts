@@ -41,6 +41,49 @@ const INVALID_POSITIONS = [
   { description: 'negative infinity', position: Number.NEGATIVE_INFINITY },
 ] as const;
 
+const WINNING_SCENARIOS = [
+  {
+    description: 'the top row',
+    moves: [0, 3, 1, 4, 2],
+    winningLine: [0, 1, 2],
+  },
+  {
+    description: 'the middle row',
+    moves: [3, 0, 4, 1, 5],
+    winningLine: [3, 4, 5],
+  },
+  {
+    description: 'the bottom row',
+    moves: [6, 0, 7, 1, 8],
+    winningLine: [6, 7, 8],
+  },
+  {
+    description: 'the left column',
+    moves: [0, 1, 3, 2, 6],
+    winningLine: [0, 3, 6],
+  },
+  {
+    description: 'the middle column',
+    moves: [1, 0, 4, 2, 7],
+    winningLine: [1, 4, 7],
+  },
+  {
+    description: 'the right column',
+    moves: [2, 0, 5, 1, 8],
+    winningLine: [2, 5, 8],
+  },
+  {
+    description: 'the descending diagonal',
+    moves: [0, 1, 4, 2, 8],
+    winningLine: [0, 4, 8],
+  },
+  {
+    description: 'the ascending diagonal',
+    moves: [2, 0, 4, 1, 6],
+    winningLine: [2, 4, 6],
+  },
+] as const;
+
 function acceptedGame(result: MoveResult): Game {
   expect(result.accepted).toBe(true);
 
@@ -63,6 +106,16 @@ function rejectedGame(
 
   expect(result.reason).toBe(expectedReason);
   return result.game;
+}
+
+function playSequence(positions: readonly number[]): Game {
+  let game = createGame();
+
+  for (const position of positions) {
+    game = acceptedGame(playMove(game, position));
+  }
+
+  return game;
 }
 
 describe('a new game', () => {
@@ -141,4 +194,44 @@ describe('illegal moves', () => {
       });
     });
   }
+});
+
+describe('winning a game', () => {
+  for (const { description, moves, winningLine } of WINNING_SCENARIOS) {
+    it(`recognizes ${description}`, () => {
+      const game = playSequence(moves);
+
+      expect(game.status).toEqual({
+        kind: 'won',
+        winner: 'X',
+        winningLine,
+      });
+
+      for (const position of winningLine) {
+        expect(game.board[position]).toBe('X');
+      }
+    });
+  }
+
+  it('identifies O as the winner when O completes a line', () => {
+    const game = playSequence([0, 3, 1, 4, 8, 5]);
+
+    expect(game.status).toEqual({
+      kind: 'won',
+      winner: 'O',
+      winningLine: [3, 4, 5],
+    });
+  });
+
+  it('keeps playing when a player has only two aligned marks', () => {
+    const game = playSequence([0, 3, 1, 4]);
+
+    expect(game.status).toEqual({ kind: 'playing', nextPlayer: 'X' });
+  });
+
+  it('keeps playing when an opponent interrupts a line', () => {
+    const game = playSequence([0, 1, 2]);
+
+    expect(game.status).toEqual({ kind: 'playing', nextPlayer: 'O' });
+  });
 });
