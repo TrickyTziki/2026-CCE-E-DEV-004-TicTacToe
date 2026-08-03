@@ -2,6 +2,8 @@ export type Mark = 'X' | 'O';
 
 export type Cell = Mark | null;
 
+export type BoardPosition = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+
 export type Board = readonly [
   Cell,
   Cell,
@@ -14,10 +16,24 @@ export type Board = readonly [
   Cell,
 ];
 
-export type GameStatus = Readonly<{
+export type WinningLine = readonly [
+  BoardPosition,
+  BoardPosition,
+  BoardPosition,
+];
+
+export type PlayingGameStatus = Readonly<{
   kind: 'playing';
   nextPlayer: Mark;
 }>;
+
+export type WonGameStatus = Readonly<{
+  kind: 'won';
+  winner: Mark;
+  winningLine: WinningLine;
+}>;
+
+export type GameStatus = PlayingGameStatus | WonGameStatus;
 
 export type Game = Readonly<{
   board: Board;
@@ -39,9 +55,18 @@ export type RejectedMove = Readonly<{
 
 export type MoveResult = AcceptedMove | RejectedMove;
 
-type BoardPosition = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
-
 const BOARD_SIZE = 9;
+
+const WINNING_LINES: readonly WinningLine[] = [
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+  [0, 4, 8],
+  [2, 4, 6],
+];
 
 function createEmptyBoard(): Board {
   return [null, null, null, null, null, null, null, null, null];
@@ -69,6 +94,25 @@ function nextPlayer(player: Mark): Mark {
   return player === 'X' ? 'O' : 'X';
 }
 
+function findWinningLine(board: Board, player: Mark): WinningLine | undefined {
+  return WINNING_LINES.find(
+    ([first, second, third]) =>
+      board[first] === player &&
+      board[second] === player &&
+      board[third] === player,
+  );
+}
+
+function statusAfterMove(board: Board, player: Mark): GameStatus {
+  const winningLine = findWinningLine(board, player);
+
+  if (winningLine !== undefined) {
+    return { kind: 'won', winner: player, winningLine };
+  }
+
+  return { kind: 'playing', nextPlayer: nextPlayer(player) };
+}
+
 function rejectMove(
   game: Game,
   reason: MoveRejectionReason,
@@ -92,13 +136,17 @@ export function playMove(game: Game, position: number): MoveResult {
     return rejectMove(game, 'occupied');
   }
 
-  const player = game.status.nextPlayer;
+  const player =
+    game.status.kind === 'playing'
+      ? game.status.nextPlayer
+      : nextPlayer(game.status.winner);
+  const board = placeMark(game.board, position, player);
 
   return {
     accepted: true,
     game: {
-      board: placeMark(game.board, position, player),
-      status: { kind: 'playing', nextPlayer: nextPlayer(player) },
+      board,
+      status: statusAfterMove(board, player),
     },
   };
 }
