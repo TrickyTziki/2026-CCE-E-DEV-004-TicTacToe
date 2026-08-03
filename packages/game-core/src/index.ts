@@ -33,7 +33,14 @@ export type WonGameStatus = Readonly<{
   winningLine: WinningLine;
 }>;
 
-export type GameStatus = PlayingGameStatus | WonGameStatus;
+export type DrawnGameStatus = Readonly<{
+  kind: 'draw';
+}>;
+
+export type GameStatus =
+  | PlayingGameStatus
+  | WonGameStatus
+  | DrawnGameStatus;
 
 export type Game = Readonly<{
   board: Board;
@@ -106,11 +113,19 @@ function findWinningLine(board: Board, player: Mark): WinningLine | undefined {
   );
 }
 
+function isBoardFull(board: Board): boolean {
+  return board.every((cell) => cell !== null);
+}
+
 function statusAfterMove(board: Board, player: Mark): GameStatus {
   const winningLine = findWinningLine(board, player);
 
   if (winningLine !== undefined) {
     return { kind: 'won', winner: player, winningLine };
+  }
+
+  if (isBoardFull(board)) {
+    return { kind: 'draw' };
   }
 
   return { kind: 'playing', nextPlayer: nextPlayer(player) };
@@ -131,6 +146,10 @@ export function createGame(): Game {
 }
 
 export function playMove(game: Game, position: number): MoveResult {
+  if (game.status.kind !== 'playing') {
+    return rejectMove(game, 'game-over');
+  }
+
   if (!isBoardPosition(position)) {
     return rejectMove(game, 'invalid-position');
   }
@@ -139,10 +158,7 @@ export function playMove(game: Game, position: number): MoveResult {
     return rejectMove(game, 'occupied');
   }
 
-  const player =
-    game.status.kind === 'playing'
-      ? game.status.nextPlayer
-      : nextPlayer(game.status.winner);
+  const player = game.status.nextPlayer;
   const board = placeMark(game.board, position, player);
 
   return {
