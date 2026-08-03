@@ -40,7 +40,10 @@ export type Game = Readonly<{
   status: GameStatus;
 }>;
 
-export type MoveRejectionReason = 'invalid-position' | 'occupied';
+export type MoveRejectionReason =
+  | 'game-over'
+  | 'invalid-position'
+  | 'occupied';
 
 export type AcceptedMove = Readonly<{
   accepted: true;

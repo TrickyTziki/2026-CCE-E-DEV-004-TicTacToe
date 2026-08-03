@@ -84,6 +84,16 @@ const WINNING_SCENARIOS = [
   },
 ] as const;
 
+const DRAW_SEQUENCE = [0, 1, 2, 4, 3, 5, 7, 6, 8] as const;
+
+const LAST_MOVE_WIN_SEQUENCE = [0, 1, 4, 3, 2, 5, 7, 6, 8] as const;
+
+const MOVES_AFTER_A_WIN = [
+  { description: 'an otherwise legal move', position: 5 },
+  { description: 'an invalid position', position: -1 },
+  { description: 'an occupied position', position: 0 },
+] as const;
+
 function acceptedGame(result: MoveResult): Game {
   expect(result.accepted).toBe(true);
 
@@ -233,5 +243,47 @@ describe('winning a game', () => {
     const game = playSequence([0, 1, 2]);
 
     expect(game.status).toEqual({ kind: 'playing', nextPlayer: 'O' });
+  });
+});
+
+describe('ending a game', () => {
+  it('declares a draw when the board is full without a winner', () => {
+    const game = playSequence(DRAW_SEQUENCE);
+
+    expect(game.status).toEqual({ kind: 'draw' });
+  });
+
+  it('declares a winner instead of a draw on the final move', () => {
+    const game = playSequence(LAST_MOVE_WIN_SEQUENCE);
+
+    expect(game.status).toEqual({
+      kind: 'won',
+      winner: 'X',
+      winningLine: [0, 4, 8],
+    });
+  });
+
+  for (const { description, position } of MOVES_AFTER_A_WIN) {
+    it(`rejects ${description} after a win`, () => {
+      const wonGame = playSequence([0, 3, 1, 4, 2]);
+
+      const unchangedGame = rejectedGame(
+        playMove(wonGame, position),
+        'game-over',
+      );
+
+      expect(unchangedGame).toEqual(wonGame);
+    });
+  }
+
+  it('rejects moves after a draw', () => {
+    const drawnGame = playSequence(DRAW_SEQUENCE);
+
+    const unchangedGame = rejectedGame(
+      playMove(drawnGame, 0),
+      'game-over',
+    );
+
+    expect(unchangedGame).toEqual(drawnGame);
   });
 });
