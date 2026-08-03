@@ -39,11 +39,19 @@ export type RejectedMove = Readonly<{
 
 export type MoveResult = AcceptedMove | RejectedMove;
 
+type BoardPosition = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+
+const BOARD_SIZE = 9;
+
 function createEmptyBoard(): Board {
   return [null, null, null, null, null, null, null, null, null];
 }
 
-function placeMark(board: Board, position: number, mark: Mark): Board {
+function isBoardPosition(position: number): position is BoardPosition {
+  return Number.isInteger(position) && position >= 0 && position < BOARD_SIZE;
+}
+
+function placeMark(board: Board, position: BoardPosition, mark: Mark): Board {
   return [
     position === 0 ? mark : board[0],
     position === 1 ? mark : board[1],
@@ -61,6 +69,13 @@ function nextPlayer(player: Mark): Mark {
   return player === 'X' ? 'O' : 'X';
 }
 
+function rejectMove(
+  game: Game,
+  reason: MoveRejectionReason,
+): RejectedMove {
+  return { accepted: false, reason, game };
+}
+
 export function createGame(): Game {
   return {
     board: createEmptyBoard(),
@@ -69,6 +84,14 @@ export function createGame(): Game {
 }
 
 export function playMove(game: Game, position: number): MoveResult {
+  if (!isBoardPosition(position)) {
+    return rejectMove(game, 'invalid-position');
+  }
+
+  if (game.board[position] !== null) {
+    return rejectMove(game, 'occupied');
+  }
+
   const player = game.status.nextPlayer;
 
   return {
