@@ -1,34 +1,329 @@
 :root {
-  color: #17211b;
-  background: #f6f7f4;
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  color: #14213a;
+  background: #101b32;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+
+  --canvas: #101b32;
+  --canvas-soft: #1b2945;
+  --paper: #f4f7f2;
+  --paper-muted: #e8ede7;
+  --ink: #14213a;
+  --ink-muted: #647084;
+  --signal: #169b68;
+  --signal-soft: #ccebdd;
+  --coral: #e76654;
+  --focus: #f3c94f;
 }
 
 * {
   box-sizing: border-box;
 }
 
+html {
+  min-width: 20rem;
+  min-height: 100%;
+}
+
 body {
   min-width: 20rem;
   min-height: 100vh;
   margin: 0;
+  background:
+    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    var(--canvas);
+  background-size: 2.5rem 2.5rem;
 }
 
-button,
-input,
-textarea,
-select {
+button {
   font: inherit;
 }
 
-main {
-  width: min(100% - 2rem, 64rem);
+.game-shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  width: min(100% - 2rem, 62rem);
   margin-inline: auto;
-  padding-block: 4rem;
+  padding-block: clamp(1.5rem, 5vw, 4.5rem);
 }
 
 h1 {
   margin: 0;
+  max-width: 8ch;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3rem, 9vw, 6.5rem);
+  font-weight: 500;
+  letter-spacing: -0.075em;
+  line-height: 0.82;
+}
+
+p {
+  margin: 0;
+}
+
+.scorecard {
+  width: 100%;
+  overflow: hidden;
+  background: var(--paper);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 0.375rem;
+  box-shadow: 1.25rem 1.25rem 0 var(--canvas-soft);
+}
+
+.scorecard__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: clamp(2rem, 6vw, 4.5rem);
+  padding-bottom: clamp(2.5rem, 6vw, 4.25rem);
+  border-bottom: 1px solid #cdd5d0;
+}
+
+.eyebrow,
+.turn-indicator__label,
+.game-controls__label {
+  color: var(--signal);
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  margin-bottom: 1.25rem;
+}
+
+.intro {
+  margin-top: 1.5rem;
+  color: var(--ink-muted);
+  font-size: clamp(0.95rem, 2vw, 1.125rem);
+}
+
+.scorecard__monogram {
+  display: grid;
+  flex: 0 0 auto;
+  grid-template-columns: repeat(2, 1fr);
+  width: 7rem;
+  color: var(--paper);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+.scorecard__monogram span {
+  display: grid;
+  aspect-ratio: 1;
+  place-items: center;
+  background: var(--ink);
+}
+
+.scorecard__monogram span:last-child {
+  background: var(--coral);
+}
+
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(18rem, 1.65fr) minmax(12rem, 0.75fr);
+}
+
+.play-area {
+  padding: clamp(1.5rem, 5vw, 3.75rem);
+}
+
+.turn-indicator {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.turn-indicator__status {
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.board {
+  display: grid;
+  overflow: hidden;
+  aspect-ratio: 1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 0.375rem;
+  padding: 0.375rem;
+  background: var(--ink);
+  border: 0.375rem solid var(--ink);
+  border-radius: 0.25rem;
+}
+
+.board__cell {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  place-items: center;
+  color: var(--ink);
+  background: var(--paper);
+  border: 0;
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    transform 140ms ease;
+}
+
+.board__cell:enabled:hover {
+  background: var(--signal-soft);
+}
+
+.board__cell:enabled:active {
+  transform: scale(0.96);
+}
+
+.board__cell:focus-visible,
+.new-game:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 0.25rem solid var(--focus);
+  outline-offset: -0.25rem;
+}
+
+.board__cell:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.board__cell--winning {
+  background: var(--signal-soft);
+}
+
+.board__mark {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3rem, 10vw, 6.25rem);
+  font-weight: 700;
+  letter-spacing: -0.08em;
+  line-height: 1;
+}
+
+.board__mark--x {
+  color: var(--ink);
+}
+
+.board__mark--o {
+  color: var(--coral);
+  font-weight: 500;
+}
+
+.game-controls {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  background: var(--paper-muted);
+  border-left: 1px solid #cdd5d0;
+}
+
+.game-controls__copy {
+  margin-top: 0.75rem;
+  color: var(--ink-muted);
+  font-size: 0.925rem;
+  line-height: 1.55;
+}
+
+.new-game {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  color: white;
+  background: var(--signal);
+  border: 0;
+  border-radius: 0.125rem;
+  cursor: pointer;
+  font-weight: 700;
+  transition:
+    background-color 140ms ease,
+    transform 140ms ease;
+}
+
+.new-game:hover {
+  background: #087d53;
+}
+
+.new-game:active {
+  transform: translateY(0.125rem);
+}
+
+.new-game span {
+  font-size: 1.25rem;
+  font-weight: 400;
+}
+
+@media (max-width: 42rem) {
+  .scorecard {
+    box-shadow: 0.625rem 0.625rem 0 var(--canvas-soft);
+  }
+
+  .scorecard__header {
+    align-items: flex-end;
+  }
+
+  .scorecard__monogram {
+    width: 4.5rem;
+    font-size: 1.5rem;
+  }
+
+  .game-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .game-controls {
+    border-top: 1px solid #cdd5d0;
+    border-left: 0;
+  }
+
+  .board__mark {
+    font-size: clamp(3rem, 19vw, 6rem);
+  }
+}
+
+@media (max-width: 27rem) {
+  .game-shell {
+    width: min(100% - 1rem, 62rem);
+    padding-block: 0.75rem 1.25rem;
+  }
+
+  .scorecard__header {
+    padding: 1.75rem 1.5rem 2rem;
+  }
+
+  .scorecard__monogram {
+    display: none;
+  }
+
+  .play-area {
+    padding: 1.5rem;
+  }
+
+  .turn-indicator {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board__cell,
+  .new-game {
+    transition: none;
+  }
 }
